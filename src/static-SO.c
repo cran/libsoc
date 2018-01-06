@@ -80,6 +80,14 @@ so_SO *so_SO_copy(so_SO *self)
 				}
 			}
 		}
+
+		if (self->path) {
+			dest->path = pharmml_strdup(self->path);
+			if (!dest->path) {
+				so_SO_free(dest);
+				return NULL;
+			}
+		}
 	}
 
 	return dest;
@@ -96,6 +104,7 @@ void so_SO_free(so_SO *self)
 		free(self->SOBlock);
 		if (self->id) free(self->id);
 		if (self->metadataFile) free(self->metadataFile);
+		free(self->path);
 		free(self);
 	}
 }

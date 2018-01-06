@@ -63,6 +63,7 @@ so_Table *so_Table_copy(so_Table *source)
             int fail = so_Table_new_column(dest,
                 source->columns[i]->columnId,
                 source->columns[i]->columnType,
+                source->columns[i]->num_columnType,
                 source->columns[i]->valueType,
                 source->columns[i]->column);
             if (fail) {
@@ -144,15 +145,20 @@ char *so_Table_get_columnId(so_Table *self, int index)
 }
 
 /** \memberof so_Table
- * Get the columnType of a specific column
+ * Get the columnTypes of a specific column
  * \param self - pointer to an so_Table
  * \param index - index of the column
- * \return A columnType enum
+ * \return Pointer to an array of columnType enums
  * \sa so_Table_set_columnType
  */
-pharmml_columnType so_Table_get_columnType(so_Table *self, int index)
+pharmml_columnType *so_Table_get_columnType(so_Table *self, int index)
 {
     return self->columns[index]->columnType;
+}
+
+int so_Table_get_num_columnTypes(so_Table *self, int index)
+{
+    return self->columns[index]->num_columnType;
 }
 
 /** \memberof so_Table
@@ -183,18 +189,31 @@ void so_Table_set_columnId(so_Table *self, int index, char *columnId)
 }
 
 /** \memberof so_Table
- * Set the columnType of a specific column
+ * Add a columnType of a specific column
  * \param self - pointer to an so_Table
  * \param index - index of the column
- * \param columnType - the columnType to set
+ * \param columnType - the columnType to add
  * \sa so_Table_get_columnType
  */
-void so_Table_set_columnType(so_Table *self, int index, pharmml_columnType columnType)
+void so_Table_add_columnType(so_Table *self, int index, pharmml_columnType columnType)
 {
     if (index < 0 || index >= self->numcols)
         return;
     
-    so_Column_set_columnType(self->columns[index], columnType);
+    so_Column_add_columnType(self->columns[index], columnType);
+}
+
+/** \memberof so_Table
+ * Remove all columnTypes of a specific column
+ * \param self - pointer to an so_Table
+ * \param index - index of the column
+ * \sa so_Table_add_columnType
+ */
+void so_Table_remove_columnType(so_Table *self, int index)
+{
+    if (index < 0 || index >= self->numcols)
+        return;
+    so_Column_remove_columnType(self->columns[index]);
 }
 
 /** \memberof so_Table
@@ -284,6 +303,22 @@ void *so_Table_get_column_from_name(so_Table *self, char *name)
 }
 
 /** \memberof so_Table
+ *  Get the index of a column from its columnId
+ *  \param self - pointer to an so_Table
+ *  \return index of the column or -1 if not found
+ */
+int so_Table_get_index_from_name(so_Table *self, char *name)
+{
+    for (int i = 0; i < self->numcols; i++) {
+        if (strcmp(name, self->columns[i]->columnId) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/** \memberof so_Table
  * Create a new column and add to table. A new buffer will be created for the data
  * and number_of_rows of the data will be copied.
  * \param self - pointer to an so_Table
@@ -294,7 +329,7 @@ void *so_Table_get_column_from_name(so_Table *self, char *name)
  * \return 0 for success
  * \sa so_Table_new_column_no_copy
  */
-int so_Table_new_column(so_Table *self, char *columnId, pharmml_columnType columnType, pharmml_valueType valueType, void *data)
+int so_Table_new_column(so_Table *self, char *columnId, pharmml_columnType *columnTypes, int num_columnTypes, pharmml_valueType valueType, void *data)
 {
     int element_size = pharmml_valueType_to_size(valueType);
 
@@ -318,7 +353,9 @@ int so_Table_new_column(so_Table *self, char *columnId, pharmml_columnType colum
     }
 
     so_Column_set_valueType(column, valueType);
-    so_Column_set_columnType(column, columnType);
+    for (int i = 0; i < num_columnTypes; i++) {
+        so_Column_add_columnType(column, columnTypes[i]);
+    }
     so_Column_set_columnId(column, columnId);
     column->column = buffer;
 
@@ -345,14 +382,16 @@ int so_Table_new_column(so_Table *self, char *columnId, pharmml_columnType colum
  * \return 0 for success
  * \sa so_Table_new_column
  */
-int so_Table_new_column_no_copy(so_Table *self, char *columnId, pharmml_columnType columnType, pharmml_valueType valueType, void *data)
+int so_Table_new_column_no_copy(so_Table *self, char *columnId, pharmml_columnType *columnTypes, int num_columnTypes, pharmml_valueType valueType, void *data)
 {
     so_Column *column = so_Column_new();
     if (!column) {
         return 1;
     }
     so_Column_set_valueType(column, valueType);
-    so_Column_set_columnType(column, columnType);
+    for (int i = 0; i < num_columnTypes; i++) {
+        so_Column_add_columnType(column, columnTypes[i]);
+    }
     if (so_Column_set_columnId(column, columnId)) {
         so_Column_free(column);
         return 1;
@@ -367,6 +406,106 @@ int so_Table_new_column_no_copy(so_Table *self, char *columnId, pharmml_columnTy
     self->columns[self->numcols] = column;
     self->numcols++;
     return 0;
+}
+
+/** \memberof so_Table
+ * Get column index of the id column
+ * \param self - pointer to an so_Table
+ * \return index of the id column starting from 0 or -1 if no id column present
+ * \sa so_Table_id_column_name
+ */
+int so_Table_id_column(so_Table *self)
+{
+    for (int i = 0; i < self->numcols; i++) {
+        for (int j = 0; j < self->columns[i]->num_columnType; j++) {
+            if (self->columns[i]->columnType[j] == PHARMML_COLTYPE_ID) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+/** \memberof so_Table
+ * Get the columnId of the id column
+ * \param self - pointer to an so_Table
+ * \return A pointer to the columnId string
+ * \sa so_Table_id_column
+ */
+char *so_Table_id_column_name(so_Table *self)
+{
+    int index = so_Table_id_column(self);
+    if (index != -1) {
+        return self->columns[index]->columnId;
+    } else {
+        return NULL;
+    }
+}
+
+/** \memberof so_Table
+ * Get column index of the idv column
+ * \param self - pointer to an so_Table
+ * \return index of the idv column starting from 0 or -1 if no idv column present
+ */
+int so_Table_idv_column(so_Table *self)
+{
+    for (int i = 0; i < self->numcols; i++) {
+        for (int j = 0; j < self->columns[i]->num_columnType; j++) {
+            if (self->columns[i]->columnType[j] == PHARMML_COLTYPE_IDV) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+/** \memberof so_Table
+ * Get column index of the dv column
+ * \param self - pointer to an so_Table
+ * \return index of the dv column starting from 0 or -1 if no dv column present
+ */
+int so_Table_dv_column(so_Table *self)
+{
+    for (int i = 0; i < self->numcols; i++) {
+        for (int j = 0; j < self->columns[i]->num_columnType; j++) {
+            if (self->columns[i]->columnType[j] == PHARMML_COLTYPE_DV) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+/** \memberof so_Table
+ * Get the columnId of the dv column
+ * \param self - pointer to an so_Table
+ * \return A pointer to the columnId string
+ * \sa so_Table_dv_column
+ */
+char *so_Table_dv_column_name(so_Table *self)
+{
+    int index = so_Table_dv_column(self);
+    if (index != -1) {
+        return self->columns[index]->columnId;
+    } else {
+        return NULL;
+    }
+}
+
+/** \memberof so_Table
+ * Get the columnId of the idv column
+ * \param self - pointer to an so_Table
+ * \return A pointer to the columnId string
+ * \sa so_Table_idv_column
+ */
+char *so_Table_idv_column_name(so_Table *self)
+{
+    int index = so_Table_idv_column(self);
+    if (index != -1) {
+        return self->columns[index]->columnId;
+    } else {
+        return NULL;
+    }
 }
 
 so_ExternalFile *so_Table_get_ExternalFile(so_Table *self)
@@ -415,7 +554,9 @@ int so_Table_xml(so_Table *self, xmlTextWriterPtr writer, char *element_name)
             if (rc < 0) return 1;
             rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "columnId", BAD_CAST self->columns[i]->columnId);
             if (rc < 0) return 1;
-            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "columnType", BAD_CAST pharmml_columnType_to_string(self->columns[i]->columnType));
+            char *columnType_string = pharmml_columnType_array_to_string(self->columns[i]->columnType, self->columns[i]->num_columnType);
+            rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "columnType", BAD_CAST columnType_string);
+            free(columnType_string);
             if (rc < 0) return 1;
             rc = xmlTextWriterWriteAttribute(writer, BAD_CAST "valueType", BAD_CAST pharmml_valueType_to_string(self->columns[i]->valueType));
             if (rc < 0) return 1;

@@ -76,12 +76,12 @@ double *so_OFMeasures_get_Deviance(so_OFMeasures *self);
  */
 double *so_OFMeasures_get_ToolObjFunction(so_OFMeasures *self);
 /** \memberof so_OFMeasures
- * Get the IndividualContribtoLL element
+ * Get the IndividualContribToLL element
  * \param self - pointer to a so_OFMeasures
- * \return A pointer to the structure representing the IndividualContribtoLL element
- * \sa so_OFMeasures_set_IndividualContribtoLL
+ * \return A pointer to the structure representing the IndividualContribToLL element
+ * \sa so_OFMeasures_set_IndividualContribToLL
  */
-so_Table *so_OFMeasures_get_IndividualContribtoLL(so_OFMeasures *self);
+so_Table *so_OFMeasures_get_IndividualContribToLL(so_OFMeasures *self);
 /** \memberof so_OFMeasures
  * Get the InformationCriteria element
  * \param self - pointer to a so_OFMeasures
@@ -118,12 +118,12 @@ void so_OFMeasures_set_Deviance(so_OFMeasures *self, double *value);
  */
 void so_OFMeasures_set_ToolObjFunction(so_OFMeasures *self, double *value);
 /** \memberof so_OFMeasures
- * Set the IndividualContribtoLL element
+ * Set the IndividualContribToLL element
  * \param self - pointer to a so_OFMeasures
  * \param value - A pointer to a \a so_Table to set.
- * \sa so_OFMeasures_get_IndividualContribtoLL
+ * \sa so_OFMeasures_get_IndividualContribToLL
  */
-void so_OFMeasures_set_IndividualContribtoLL(so_OFMeasures *self, so_Table *value);
+void so_OFMeasures_set_IndividualContribToLL(so_OFMeasures *self, so_Table *value);
 /** \memberof so_OFMeasures
  * Set the InformationCriteria element
  * \param self - pointer to a so_OFMeasures
@@ -132,11 +132,11 @@ void so_OFMeasures_set_IndividualContribtoLL(so_OFMeasures *self, so_Table *valu
  */
 void so_OFMeasures_set_InformationCriteria(so_OFMeasures *self, so_InformationCriteria *value);
 /** \memberof so_OFMeasures
- * Create a new IndividualContribtoLL element and insert it into the so_OFMeasures
+ * Create a new IndividualContribToLL element and insert it into the so_OFMeasures
  * \param self - pointer to a so_OFMeasures
  * \return A pointer to the newly created structure or NULL if memory allocation failed
  */
-so_Table *so_OFMeasures_create_IndividualContribtoLL(so_OFMeasures *self);
+so_Table *so_OFMeasures_create_IndividualContribToLL(so_OFMeasures *self);
 /** \memberof so_OFMeasures
  * Create a new InformationCriteria element and insert it into the so_OFMeasures
  * \param self - pointer to a so_OFMeasures

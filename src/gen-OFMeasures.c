@@ -138,23 +138,23 @@ SEXP r_so_OFMeasures_set_ToolObjFunction(SEXP self, SEXP child)
 }
 
 
-SEXP r_so_OFMeasures_get_IndividualContribtoLL(SEXP self)
+SEXP r_so_OFMeasures_get_IndividualContribToLL(SEXP self)
 {
-	so_Table *child = so_OFMeasures_get_IndividualContribtoLL(R_ExternalPtrAddr(self));
+	so_Table *child = so_OFMeasures_get_IndividualContribToLL(R_ExternalPtrAddr(self));
 	SEXP result = table2df(child);
 	return result;
 }
 
-SEXP r_so_OFMeasures_set_IndividualContribtoLL(SEXP self, SEXP child)
+SEXP r_so_OFMeasures_set_IndividualContribToLL(SEXP self, SEXP child)
 {
 	so_Table *table = df2table(child);
-	so_OFMeasures_set_IndividualContribtoLL(R_ExternalPtrAddr(self), table);
+	so_OFMeasures_set_IndividualContribToLL(R_ExternalPtrAddr(self), table);
 	return R_NilValue;
 }
 
-SEXP r_so_OFMeasures_create_IndividualContribtoLL(SEXP self)
+SEXP r_so_OFMeasures_create_IndividualContribToLL(SEXP self)
 {
-	so_Table *child = so_OFMeasures_create_IndividualContribtoLL(R_ExternalPtrAddr(self));
+	so_Table *child = so_OFMeasures_create_IndividualContribToLL(R_ExternalPtrAddr(self));
 	return R_MakeExternalPtr(child, R_NilValue, R_NilValue);
 }
 

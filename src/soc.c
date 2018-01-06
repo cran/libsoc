@@ -19,6 +19,7 @@
 #include <Rdefines.h>
 #include <so.h>
 #include "soc.h"
+#include <so/soext.h>
 
 SEXP r_so_SO_read(SEXP name)
 {
@@ -46,6 +47,90 @@ SEXP r_so_SO_write(SEXP so, SEXP filename, SEXP pretty)
     SEXP ret;
     PROTECT(ret = NEW_INTEGER(1));
     INTEGER_POINTER(ret)[0] = fail;
+    UNPROTECT(1);
+
+    return ret;
+}
+
+SEXP r_so_SO_all_population_estimates(SEXP so)
+{
+    so_Table *table = so_SO_all_population_estimates(R_ExternalPtrAddr(so));
+
+    if (!table) {
+        error("Could not gather any population estimates");
+    }
+
+    SEXP df = table2df(table);
+    so_Table_free(table);
+
+    return df;
+}
+
+SEXP r_so_SO_all_standard_errors(SEXP so)
+{
+    so_Table *table = so_SO_all_standard_errors(R_ExternalPtrAddr(so));
+
+    if (!table) {
+        error("Could not gather any population estimates");
+    }
+
+    SEXP df = table2df(table);
+    so_Table_free(table);
+
+    return df;
+}
+
+SEXP r_so_SO_is_structural_parameter(SEXP so, SEXP name)
+{
+    const char *c_name = CHAR(STRING_ELT(name, 0));
+    int res = so_SO_is_structural_parameter(R_ExternalPtrAddr(so), c_name); 
+
+    SEXP ret;
+    PROTECT(ret = NEW_INTEGER(1));
+    INTEGER_POINTER(ret)[0] = res;
+    UNPROTECT(1);
+
+    return ret;
+}
+
+SEXP r_so_SO_is_ruv_parameter(SEXP so, SEXP name)
+{
+    const char *c_name = CHAR(STRING_ELT(name, 0));
+    int res = so_SO_is_ruv_parameter(R_ExternalPtrAddr(so), c_name); 
+
+    SEXP ret;
+    PROTECT(ret = NEW_INTEGER(1));
+    INTEGER_POINTER(ret)[0] = res;
+    UNPROTECT(1);
+
+    return ret;
+}
+
+SEXP r_so_SO_random_variable_from_variability_parameter(SEXP so, SEXP name)
+{
+    const char *c_name = CHAR(STRING_ELT(name, 0));
+    char *res_string = so_SO_random_variable_from_variability_parameter(R_ExternalPtrAddr(so), c_name); 
+
+    SEXP res = PROTECT(res = NEW_STRING(1));
+    if (res_string) {
+        SET_STRING_ELT(res, 0, mkChar(res_string));
+        free(res_string);
+    } else {
+        SET_STRING_ELT(res, 0, NA_STRING);
+    }
+
+    UNPROTECT(1);
+    return res;
+}
+
+SEXP r_so_SO_is_correlation_parameter(SEXP so, SEXP name)
+{
+    const char *c_name = CHAR(STRING_ELT(name, 0));
+    int res = so_SO_is_correlation_parameter(R_ExternalPtrAddr(so), c_name); 
+
+    SEXP ret;
+    PROTECT(ret = NEW_INTEGER(1));
+    INTEGER_POINTER(ret)[0] = res;
     UNPROTECT(1);
 
     return ret;
@@ -84,36 +169,34 @@ so_Table *df2table(SEXP df)
     so_Table_set_number_of_rows(table, numrows);
 
     const char *current_col_name;
-    pharmml_columnType column_type;
     pharmml_valueType value_type;
     void *data;
+    SEXP col_types = GET_ATTR(df, install("columnType"));
 
     for (int i = 0; i < numcols; i++) {
         SEXP col_names = GET_ATTR(df, R_NamesSymbol);
         current_col_name = CHAR(STRING_ELT(col_names, i));
 
-        SEXP col_types = GET_ATTR(df, install("columnType"));
-        if (col_types == R_NilValue) {
-            column_type = PHARMML_COLTYPE_UNDEFINED;
-        } else {
-            column_type = pharmml_string_to_columnType(CHAR(STRING_ELT(col_types, i)));
-        }
-
         if (isReal(VECTOR_ELT(df, i))) {
             value_type = PHARMML_VALUETYPE_REAL;
             data = (void *) NUMERIC_POINTER(VECTOR_ELT(df, i));
-            so_Table_new_column(table, (char *) current_col_name, column_type, value_type, data);
+            so_Table_new_column(table, (char *) current_col_name, NULL, 0, value_type, data);
         } else if (isString(VECTOR_ELT(df, i))) {
             value_type = PHARMML_VALUETYPE_STRING;
             char **buffer = malloc(numrows * sizeof(char *));
             for (int j = 0; j < numrows; j++) {
                 buffer[j] = pharmml_strdup(CHAR(STRING_ELT(VECTOR_ELT(df, i), j)));
             }
-            so_Table_new_column_no_copy(table, (char *) current_col_name, column_type, value_type, buffer);
+            so_Table_new_column_no_copy(table, (char *) current_col_name, NULL, 0, value_type, buffer);
         } else if (isInteger(VECTOR_ELT(df, i))) {
             value_type = PHARMML_VALUETYPE_INT;
             data = (void *) INTEGER_POINTER(VECTOR_ELT(df, i));
-            so_Table_new_column(table, (char *) current_col_name, column_type, value_type, data);
+            so_Table_new_column(table, (char *) current_col_name, NULL, 0, value_type, data);
+        }
+
+        SEXP column_col_types = VECTOR_ELT(col_types, i);
+        for (int j = 0; j < length(column_col_types); j++) {
+            so_Table_add_columnType(table, i, pharmml_string_to_columnType(CHAR(STRING_ELT(column_col_types, j))));
         }
     }
 
@@ -155,9 +238,16 @@ SEXP table2df(so_Table *table)
 
     // Create columnType attribute
     SEXP column_type;
-    PROTECT(column_type = NEW_STRING(numcols));
+    PROTECT(column_type = NEW_LIST(numcols));
     for (int i = 0; i < numcols; i++) {
-        SET_STRING_ELT(column_type, i, mkChar(pharmml_columnType_to_string(so_Table_get_columnType(table, i))));
+        SEXP column_colTypes;
+        int number_of_columnTypes = so_Table_get_num_columnTypes(table, i);
+        PROTECT(column_colTypes = NEW_STRING(number_of_columnTypes));
+        for (int j = 0; j < number_of_columnTypes; j++) {
+            SET_STRING_ELT(column_colTypes, j, mkChar(pharmml_columnType_to_string(so_Table_get_columnType(table, i)[j])));
+        }
+        SET_ELEMENT(column_type, i, column_colTypes);
+        UNPROTECT(1);
     }
     SET_ATTR(list, install("columnType"), column_type);
 
@@ -168,17 +258,13 @@ SEXP table2df(so_Table *table)
             double *col1 = (double *) so_Table_get_column_from_number(table, j);
             PROTECT(col = NEW_NUMERIC(numrows));
             double *ptr = NUMERIC_POINTER(col);
-            for (int i = 0; i < numrows; i++) {
-                *ptr++ = col1[i];
-            }
+            memcpy(ptr, col1, numrows * sizeof(double));
             SET_ELEMENT(list, j, col);
         } else if (vt == PHARMML_VALUETYPE_INT) {
             int *col1 = (int *) so_Table_get_column_from_number(table, j);
             PROTECT(col = NEW_INTEGER(numrows));
             int *ptr = INTEGER_POINTER(col);
-            for (int i = 0; i < numrows; i++) {
-                *ptr++ = col1[i];
-            }
+            memcpy(ptr, col1, numrows * sizeof(int));
             SET_ELEMENT(list, j, col);
         } else if (vt == PHARMML_VALUETYPE_STRING) {
             char **col2 = (char **) so_Table_get_column_from_number(table, j);

@@ -12,7 +12,7 @@ $Likelihood - A numeric\cr
 $LogLikelihood - A numeric\cr
 $Deviance - A numeric\cr
 $ToolObjFunction - A numeric\cr
-$IndividualContribtoLL - A data.frame\cr
+$IndividualContribToLL - A data.frame\cr
 $InformationCriteria - A \link{so_InformationCriteria} object\cr
 }
 \keyword{so_OFMeasures}

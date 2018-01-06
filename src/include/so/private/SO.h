@@ -36,6 +36,7 @@ struct so_SO {
 	int in_SOBlock;
 	int reference_count;
 	int error;
+	char *path;
 };
 
 int so_SO_start_element(so_SO *self, const char *localname, int nb_attributes, const char **attributes);

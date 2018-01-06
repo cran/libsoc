@@ -33,13 +33,13 @@ struct so_OFMeasures {
 	double Deviance_number;
 	double *ToolObjFunction;
 	double ToolObjFunction_number;
-	so_Table *IndividualContribtoLL;
+	so_Table *IndividualContribToLL;
 	so_InformationCriteria *InformationCriteria;
 	int in_Likelihood;
 	int in_LogLikelihood;
 	int in_Deviance;
 	int in_ToolObjFunction;
-	int in_IndividualContribtoLL;
+	int in_IndividualContribToLL;
 	int in_InformationCriteria;
 	int reference_count;
 };

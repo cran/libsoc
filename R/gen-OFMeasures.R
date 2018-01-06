@@ -68,16 +68,16 @@ so_OFMeasures_set_ToolObjFunction <- function(self, value) {
 	.Call("r_so_OFMeasures_set_ToolObjFunction", self, value)
 }
 
-so_OFMeasures_get_IndividualContribtoLL <- function(self) {
-	.Call("r_so_OFMeasures_get_IndividualContribtoLL", self)
+so_OFMeasures_get_IndividualContribToLL <- function(self) {
+	.Call("r_so_OFMeasures_get_IndividualContribToLL", self)
 }
 
-so_OFMeasures_set_IndividualContribtoLL <- function(self, value) {
-	.Call("r_so_OFMeasures_set_IndividualContribtoLL", self, value)
+so_OFMeasures_set_IndividualContribToLL <- function(self, value) {
+	.Call("r_so_OFMeasures_set_IndividualContribToLL", self, value)
 }
 
-so_OFMeasures_create_IndividualContribtoLL <- function(self) {
-	.Call("r_so_OFMeasures_create_IndividualContribtoLL", self)
+so_OFMeasures_create_IndividualContribToLL <- function(self) {
+	.Call("r_so_OFMeasures_create_IndividualContribToLL", self)
 }
 
 so_OFMeasures_get_InformationCriteria <- function(self) {
@@ -148,16 +148,16 @@ ToolObjFunction_acc <- function(value)
 	}
 }
 
-IndividualContribtoLL_acc <- function(value)
+IndividualContribToLL_acc <- function(value)
 {
 	if (!isnull(.self$.cobj)) {
 		if (missing(value)) {
-			so_OFMeasures_get_IndividualContribtoLL(.self$.cobj)
+			so_OFMeasures_get_IndividualContribToLL(.self$.cobj)
 		} else {
 			if (!is(value, "data.frame")) {
 				stop("object must be of type 'data.frame'")
 			}
-			so_OFMeasures_set_IndividualContribtoLL(.self$.cobj, value)
+			so_OFMeasures_set_IndividualContribToLL(.self$.cobj, value)
 		}
 	}
 }
@@ -187,7 +187,7 @@ so_OFMeasures = setRefClass("so_OFMeasures",
 		LogLikelihood = LogLikelihood_acc,
 		Deviance = Deviance_acc,
 		ToolObjFunction = ToolObjFunction_acc,
-		IndividualContribtoLL = IndividualContribtoLL_acc,
+		IndividualContribToLL = IndividualContribToLL_acc,
 		InformationCriteria = InformationCriteria_acc,
 		.cobj = "externalptr"
 	),

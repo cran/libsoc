@@ -53,9 +53,9 @@ so_OFMeasures *so_OFMeasures_copy(so_OFMeasures *self)
 			dest->ToolObjFunction_number = self->ToolObjFunction_number;
 			dest->ToolObjFunction = &(dest->ToolObjFunction_number);
 		}
-		if (self->IndividualContribtoLL) {
-			dest->IndividualContribtoLL = so_Table_copy(self->IndividualContribtoLL);
-			if (!dest->IndividualContribtoLL) {
+		if (self->IndividualContribToLL) {
+			dest->IndividualContribToLL = so_Table_copy(self->IndividualContribToLL);
+			if (!dest->IndividualContribToLL) {
 				so_OFMeasures_free(dest);
 				return NULL;
 			}
@@ -75,7 +75,7 @@ so_OFMeasures *so_OFMeasures_copy(so_OFMeasures *self)
 void so_OFMeasures_free(so_OFMeasures *self)
 {
 	if (self) {
-		so_Table_unref(self->IndividualContribtoLL);
+		so_Table_unref(self->IndividualContribToLL);
 		so_InformationCriteria_unref(self->InformationCriteria);
 		free(self);
 	}
@@ -116,9 +116,9 @@ double *so_OFMeasures_get_ToolObjFunction(so_OFMeasures *self)
 	return self->ToolObjFunction;
 }
 
-so_Table *so_OFMeasures_get_IndividualContribtoLL(so_OFMeasures *self)
+so_Table *so_OFMeasures_get_IndividualContribToLL(so_OFMeasures *self)
 {
-	return self->IndividualContribtoLL;
+	return self->IndividualContribToLL;
 }
 
 so_InformationCriteria *so_OFMeasures_get_InformationCriteria(so_OFMeasures *self)
@@ -166,10 +166,10 @@ void so_OFMeasures_set_ToolObjFunction(so_OFMeasures *self, double *value)
 	}
 }
 
-void so_OFMeasures_set_IndividualContribtoLL(so_OFMeasures *self, so_Table *value)
+void so_OFMeasures_set_IndividualContribToLL(so_OFMeasures *self, so_Table *value)
 {
-	so_Table_unref(self->IndividualContribtoLL);
-	self->IndividualContribtoLL = value;
+	so_Table_unref(self->IndividualContribToLL);
+	self->IndividualContribToLL = value;
 }
 
 void so_OFMeasures_set_InformationCriteria(so_OFMeasures *self, so_InformationCriteria *value)
@@ -178,11 +178,11 @@ void so_OFMeasures_set_InformationCriteria(so_OFMeasures *self, so_InformationCr
 	self->InformationCriteria = value;
 }
 
-so_Table *so_OFMeasures_create_IndividualContribtoLL(so_OFMeasures *self)
+so_Table *so_OFMeasures_create_IndividualContribToLL(so_OFMeasures *self)
 {
-	so_Table *obj = so_Table_new("IndividualContribtoLL");
+	so_Table *obj = so_Table_new("IndividualContribToLL");
 	if (obj) {
-		self->IndividualContribtoLL = obj;
+		self->IndividualContribToLL = obj;
 	}
 	return obj;
 }
@@ -199,7 +199,7 @@ so_InformationCriteria *so_OFMeasures_create_InformationCriteria(so_OFMeasures *
 int so_OFMeasures_xml(so_OFMeasures *self, xmlTextWriterPtr writer)
 {
 	int rc;
-	if (self->Likelihood || self->LogLikelihood || self->Deviance || self->ToolObjFunction || self->IndividualContribtoLL || self->InformationCriteria) {
+	if (self->Likelihood || self->LogLikelihood || self->Deviance || self->ToolObjFunction || self->IndividualContribToLL || self->InformationCriteria) {
 		rc = xmlTextWriterStartElement(writer, BAD_CAST "OFMeasures");
 		if (rc < 0) return 1;
 		if (self->Likelihood) {
@@ -230,8 +230,8 @@ int so_OFMeasures_xml(so_OFMeasures *self, xmlTextWriterPtr writer)
 			free(number_string);
 			if (rc < 0) return 1;
 		}
-		if (self->IndividualContribtoLL) {
-			rc = so_Table_xml(self->IndividualContribtoLL, writer, "IndividualContribtoLL");
+		if (self->IndividualContribToLL) {
+			rc = so_Table_xml(self->IndividualContribToLL, writer, "IndividualContribToLL");
 			if (rc != 0) return rc;
 		}
 		if (self->InformationCriteria) {
@@ -246,8 +246,8 @@ int so_OFMeasures_xml(so_OFMeasures *self, xmlTextWriterPtr writer)
 
 int so_OFMeasures_start_element(so_OFMeasures *self, const char *localname, int nb_attributes, const char **attributes)
 {
-	if (self->in_IndividualContribtoLL) {
-		int fail = so_Table_start_element(self->IndividualContribtoLL, localname, nb_attributes, attributes);
+	if (self->in_IndividualContribToLL) {
+		int fail = so_Table_start_element(self->IndividualContribToLL, localname, nb_attributes, attributes);
 		if (fail) {
 			return fail;
 		}
@@ -264,12 +264,12 @@ int so_OFMeasures_start_element(so_OFMeasures *self, const char *localname, int 
 		self->in_Deviance = 1;
 	} else if (strcmp(localname, "ToolObjFunction") == 0) {
 		self->in_ToolObjFunction = 1;
-	} else if (strcmp(localname, "IndividualContribtoLL") == 0) {
-		so_Table *IndividualContribtoLL = so_OFMeasures_create_IndividualContribtoLL(self);
-		if (!IndividualContribtoLL) {
+	} else if (strcmp(localname, "IndividualContribToLL") == 0) {
+		so_Table *IndividualContribToLL = so_OFMeasures_create_IndividualContribToLL(self);
+		if (!IndividualContribToLL) {
 			return 1;
 		}
-		self->in_IndividualContribtoLL = 1;
+		self->in_IndividualContribToLL = 1;
 	} else if (strcmp(localname, "InformationCriteria") == 0) {
 		so_InformationCriteria *InformationCriteria = so_OFMeasures_create_InformationCriteria(self);
 		if (!InformationCriteria) {
@@ -290,12 +290,12 @@ void so_OFMeasures_end_element(so_OFMeasures *self, const char *localname)
 		self->in_Deviance = 0;
 	} else if (strcmp(localname, "ToolObjFunction") == 0 && self->in_ToolObjFunction) {
 		self->in_ToolObjFunction = 0;
-	} else if (strcmp(localname, "IndividualContribtoLL") == 0 && self->in_IndividualContribtoLL) {
-		self->in_IndividualContribtoLL = 0;
+	} else if (strcmp(localname, "IndividualContribToLL") == 0 && self->in_IndividualContribToLL) {
+		self->in_IndividualContribToLL = 0;
 	} else if (strcmp(localname, "InformationCriteria") == 0 && self->in_InformationCriteria) {
 		self->in_InformationCriteria = 0;
-	} else if (self->in_IndividualContribtoLL) {
-		so_Table_end_element(self->IndividualContribtoLL, localname);
+	} else if (self->in_IndividualContribToLL) {
+		so_Table_end_element(self->IndividualContribToLL, localname);
 	} else if (self->in_InformationCriteria) {
 		so_InformationCriteria_end_element(self->InformationCriteria, localname);
 	}
@@ -315,8 +315,8 @@ int so_OFMeasures_characters(so_OFMeasures *self, const char *ch, int len)
 	} else if (self->in_ToolObjFunction) {
 		self->ToolObjFunction_number = pharmml_string_to_double(ch);
 		self->ToolObjFunction = &(self->ToolObjFunction_number);
-	} else if (self->in_IndividualContribtoLL) {
-		int fail = so_Table_characters(self->IndividualContribtoLL, ch, len);
+	} else if (self->in_IndividualContribToLL) {
+		int fail = so_Table_characters(self->IndividualContribToLL, ch, len);
 		if (fail) return 1;
 	} else if (self->in_InformationCriteria) {
 		int fail = so_InformationCriteria_characters(self->InformationCriteria, ch, len);
