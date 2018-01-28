@@ -57,3 +57,15 @@ libsoc::idv_column_name(pred)
 res <- so$SOBlock[[1]]$Estimation$Residuals$ResidualTable
 head(res, 20)
 
+## ----messages------------------------------------------------------------
+messages <- so$SOBlock[[1]]$TaskInformation$Message
+messages[[1]]$Name
+messages[[1]]$Content
+messages[[1]]$Severity
+messages[[1]]$Toolname
+messages[[13]]$Content
+
+## ----iofv----------------------------------------------------------------
+iofv <- so$SOBlock[[1]]$Estimation$OFMeasures$IndividualContribToLL
+head(iofv)
+

@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title>Reading an SO file</title>
+<title>Creating a simple SO with PopulationEstimate</title>
 
 <script type="text/javascript">
 window.onload = function() {
@@ -201,290 +201,156 @@ hr {
 </head>
 
 <body>
-<h2>Reading an SO file</h2>
+<h2>Creating a simple SO with PopulationEstimate</h2>
 
-<p>It is easy to read a Standard Output file into R.</p>
+<p>This section will walk you through the creation of a simple SO file.</p>
 
-<pre><code class="r">filename &lt;- system.file(&quot;extdata&quot;, &quot;pheno.SO.xml&quot;,  package=&quot;libsoc&quot;)
-so &lt;- libsoc::so_SO_read(filename)
+<p>First we create the data structure with the maximum likelihood parameter estimates.</p>
+
+<pre><code class="r">MLE &lt;- data.frame(POP_CL=2.23, POP_V=40, IVCL=0.4, IVV=0.3)
 </code></pre>
 
-<h2>Navigating the SO structure</h2>
+<p>Next we add the additional columnType attribute.</p>
 
-<p>The SO R object closely follows the tree structure of the SO XML. We can extract the population parameter estimates like this:</p>
-
-<pre><code class="r">param &lt;- so$SOBlock[[1]]$Estimation$PopulationEstimates$MLE
-param
+<pre><code class="r">attributes(MLE)$columnType &lt;- list(c(&quot;structuralParameter&quot;), c(&quot;structuralParameter&quot;), c(&quot;varParameter&quot;, &quot;variance&quot;), c(&quot;varParameter&quot;, &quot;variance&quot;))
 </code></pre>
 
-<pre><code>##         TVCL     TVV     IVCL      IVV SIGMA_1_1_
-## 1 0.00534888 1.42034 0.130798 0.177443  0.0188202
+<p>This sets POP_CL and POP_V to be structural parameters and IVCL and IVV to be variability parameters on the variance scale.</p>
+
+<p>The next step is to create the PopulationEstimates object.</p>
+
+<pre><code class="r">library(libsoc)
+popest &lt;- so_PopulationEstimates$new()
 </code></pre>
 
-<p>The result is a data.frame with the population estimates and the names of the parameters as column names. Note the way we go deeper in the SO tree with successive use of the $-opterator. As an SO can contain more than one SOBlock the SOBlock-structure is a list. In the example we simply select the first (and only) SOBlock.</p>
+<p>The MLE data.frame can now be attached.</p>
 
-<p>libsoc also has a special function for extracting the parameter estimates across all SOBlocks</p>
-
-<pre><code class="r">so$all_population_estimates()
+<pre><code class="r">popest$MLE &lt;- MLE
 </code></pre>
 
-<pre><code>##         TVCL     TVV     IVCL      IVV SIGMA_1_1_
-## 1 0.00534888 1.42034 0.130798 0.177443  0.0188202
+<p>Now we create the parent objects of the PopulationEstimates.</p>
+
+<pre><code class="r">est &lt;- so_Estimation$new()
+est$PopulationEstimates &lt;- popest
+block &lt;- so_SOBlock$new()
+block$blkId &lt;- &quot;myEstimationRun&quot;
+block$Estimation &lt;- est
+so &lt;- so_SO$new()
+so$add_SOBlock(block)
 </code></pre>
 
-<h2>Getting information on parameters</h2>
+<p>It is possible to add messages using a convenient method</p>
 
-<p>If the SO is linked to a PharmML (for example if it was generated with &ldquo;nmoutput2so -generate_pharmml&rdquo;) parameter information can be retrieved from the ParameterModel.</p>
-
-<pre><code class="r">cols &lt;- colnames(param)
-so$variability_type(cols)
+<pre><code class="r">block$add_message(&quot;WARNING&quot;, &quot;myTool&quot;, &quot;name_of_warning&quot;, &quot;This is the description&quot;, 2)
 </code></pre>
 
-<pre><code>##                   TVCL                    TVV                   IVCL 
-##      &quot;structParameter&quot;      &quot;structParameter&quot; &quot;parameterVariability&quot; 
-##                    IVV             SIGMA_1_1_ 
-## &quot;parameterVariability&quot;        &quot;residualError&quot;
+<p>Another method adds a rawresults datafile from the tool.</p>
+
+<pre><code class="r">block$add_rawresults_datafile(&quot;Description&quot;, &quot;file&quot;, &quot;id1&quot;)
 </code></pre>
 
-<p>It is also possible to get information on which parameters represent correlations.</p>
+<p>The resulting structure can be inspected</p>
 
-<pre><code class="r">so$correlation_parameters(cols)
+<pre><code class="r">so
 </code></pre>
 
-<pre><code>##       TVCL        TVV       IVCL        IVV SIGMA_1_1_ 
-##      FALSE      FALSE      FALSE      FALSE      FALSE
-</code></pre>
-
-<p>This example has no correlation parameters.</p>
-
-<p>The names of the random variables corresponding to the variability parameters can be retrieved:</p>
-
-<pre><code class="r">so$random_variable_from_variability_parameter(cols)
-</code></pre>
-
-<pre><code>##       TVCL        TVV       IVCL        IVV SIGMA_1_1_ 
-##         NA         NA     &quot;ETA1&quot;     &quot;ETA2&quot;     &quot;EPS1&quot;
-</code></pre>
-
-<h2>Obtaining some parameter uncertainty measures</h2>
-
-<p>The covariance matrix is of standard R matrix type:</p>
-
-<pre><code class="r">so$SOBlock[[1]]$Estimation$PrecisionPopulationEstimates$MLE$CovarianceMatrix
-</code></pre>
-
-<pre><code>##                    TVCL          TVV         IVCL          IVV
-## TVCL        1.45861e-07  1.14987e-05 -1.95288e-05  7.77462e-07
-## TVV         1.14987e-05  9.64296e-03 -1.98572e-03  3.38779e-03
-## IVCL       -1.95288e-05 -1.98572e-03  7.65663e-03 -4.79990e-04
-## IVV         7.77462e-07  3.38779e-03 -4.79990e-04  2.56664e-03
-## SIGMA_1_1_ -1.29140e-07  1.45110e-04  6.53171e-05  1.06472e-04
-##              SIGMA_1_1_
-## TVCL       -1.29140e-07
-## TVV         1.45110e-04
-## IVCL        6.53171e-05
-## IVV         1.06472e-04
-## SIGMA_1_1_  1.52394e-05
-</code></pre>
-
-<p>The standard error for the parameters can be extracted for each SOBlock separately:</p>
-
-<pre><code class="r">so$SOBlock[[1]]$Estimation$PrecisionPopulationEstimates$MLE$StandardError
-</code></pre>
-
-<pre><code>##    Parameter          SE
-## 1       TVCL 0.000381917
-## 2        TVV 0.098198600
-## 3       IVCL 0.087502200
-## 4        IVV 0.050662000
-## 5 SIGMA_1_1_ 0.003903770
-</code></pre>
-
-<p>Or more conveniently for all SOBlocks together:</p>
-
-<pre><code class="r">so$all_standard_errors()
-</code></pre>
-
-<pre><code>##          TVCL       TVV      IVCL      IVV SIGMA_1_1_
-## 1 0.000381917 0.0981986 0.0875022 0.050662 0.00390377
-</code></pre>
-
-<p>Relative standard errors can currently only be retrieved for each SOBlock separately:</p>
-
-<pre><code class="r">so$SOBlock[[1]]$Estimation$PrecisionPopulationEstimates$MLE$RelativeStandardError
-</code></pre>
-
-<pre><code>##    Parameter       RSE
-## 1       TVCL  7.140130
-## 2        TVV  6.913739
-## 3       IVCL 66.898729
-## 4        IVV 28.551140
-## 5 SIGMA_1_1_ 20.742447
-</code></pre>
-
-<h2>Getting the OFV</h2>
-
-<pre><code class="r">so$SOBlock[[1]]$Estimation$OFMeasures$Deviance
-</code></pre>
-
-<pre><code>## [1] 740.278
-</code></pre>
-
-<h2>Getting the Predictions</h2>
-
-<pre><code class="r">pred &lt;- so$SOBlock[[1]]$Estimation$Predictions
-head(pred, 20)
-</code></pre>
-
-<pre><code>##    ID  TIME   PRED  IPRED
-## 1   1   0.0 17.601 17.704
-## 2   1   2.0 17.469 17.575
-## 3   1  12.5 19.256 19.395
-## 4   1  24.5 20.870 21.045
-## 5   1  37.0 22.374 22.588
-## 6   1  48.0 23.930 24.181
-## 7   1  60.5 25.294 25.584
-## 8   1  72.5 26.641 26.970
-## 9   1  85.3 27.851 28.222
-## 10  1  96.5 29.165 29.573
-## 11  1 108.5 30.341 30.789
-## 12  1 112.5 29.887 30.344
-## 13  2   0.0 10.561 11.212
-## 14  2   2.0 10.482 11.140
-## 15  2   4.0 13.078 13.908
-## 16  2  16.0 15.176 16.218
-## 17  2  27.8 17.192 18.450
-## 18  2  40.0 19.095 20.575
-## 19  2  52.0 20.927 22.631
-## 20  2  63.5 20.040 21.803
-</code></pre>
-
-<h2>Getting information on table columns</h2>
-
-<p>Each table in the SO structure has a columnType attribute that gives an array of columnTypes taken directly from the xml.</p>
-
-<pre><code class="r">attributes(pred)$columnType
-</code></pre>
-
-<pre><code>## [[1]]
-## [1] &quot;id&quot;
+<pre><code>## Reference class object of class &quot;so_SO&quot;
+## Field &quot;id&quot;:
+## NULL
+## Field &quot;metadataFile&quot;:
+## NULL
+## Field &quot;Description&quot;:
+## NULL
+## Field &quot;PharmMLRef&quot;:
+## NULL
+## Field &quot;SOBlock&quot;:
+## [[1]]
+## Reference class object of class &quot;so_SOBlock&quot;
+## Field &quot;blkId&quot;:
+## [1] &quot;myEstimationRun&quot;
+## Field &quot;ToolSettings&quot;:
+## NULL
+## Field &quot;RawResults&quot;:
+## Reference class object of class &quot;so_RawResults&quot;
+## Field &quot;DataFile&quot;:
+## [[1]]
+## data frame with 0 columns and 0 rows
 ## 
-## [[2]]
-## [1] &quot;idv&quot;
+## Field &quot;GraphicsFile&quot;:
+## NULL
+## Field &quot;.cobj&quot;:
+## &lt;pointer: 0x56123b65cca0&gt;
+## Field &quot;TaskInformation&quot;:
+## Reference class object of class &quot;so_TaskInformation&quot;
+## Field &quot;Message&quot;:
+## [[1]]
+## Reference class object of class &quot;so_Message&quot;
+## Field &quot;type&quot;:
+## [1] &quot;WARNING&quot;
+## Field &quot;Toolname&quot;:
+## [1] &quot;myTool&quot;
+## Field &quot;Name&quot;:
+## [1] &quot;name_of_warning&quot;
+## Field &quot;Content&quot;:
+## [1] &quot;This is the description&quot;
+## Field &quot;Severity&quot;:
+## [1] 2
+## Field &quot;.cobj&quot;:
+## &lt;pointer: 0x56123be38a80&gt;
 ## 
-## [[3]]
-## [1] &quot;undefined&quot;
+## Field &quot;OutputFilePath&quot;:
+## NULL
+## Field &quot;RunTime&quot;:
+## NULL
+## Field &quot;NumberChains&quot;:
+## NULL
+## Field &quot;NumberIterations&quot;:
+## NULL
+## Field &quot;.cobj&quot;:
+## &lt;pointer: 0x56123ad58bc0&gt;
+## Field &quot;Estimation&quot;:
+## Reference class object of class &quot;so_Estimation&quot;
+## Field &quot;PopulationEstimates&quot;:
+## Reference class object of class &quot;so_PopulationEstimates&quot;
+## Field &quot;MLE&quot;:
+##   POP_CL POP_V IVCL IVV
+## 1   2.23    40  0.4 0.3
+## Field &quot;Bayesian&quot;:
+## NULL
+## Field &quot;OtherMethod&quot;:
+## NULL
+## Field &quot;.cobj&quot;:
+## &lt;pointer: 0x56123c1ce6b0&gt;
+## Field &quot;PrecisionPopulationEstimates&quot;:
+## NULL
+## Field &quot;IndividualEstimates&quot;:
+## NULL
+## Field &quot;PrecisionIndividualEstimates&quot;:
+## NULL
+## Field &quot;Residuals&quot;:
+## NULL
+## Field &quot;Predictions&quot;:
+## NULL
+## Field &quot;OFMeasures&quot;:
+## NULL
+## Field &quot;TargetToolMessages&quot;:
+## NULL
+## Field &quot;.cobj&quot;:
+## &lt;pointer: 0x56123b1adec0&gt;
+## Field &quot;Simulation&quot;:
+## NULL
+## Field &quot;ModelDiagnostic&quot;:
+## NULL
+## Field &quot;OptimalDesign&quot;:
+## NULL
+## Field &quot;.cobj&quot;:
+## &lt;pointer: 0x56123beaafe0&gt;
 ## 
-## [[4]]
-## [1] &quot;undefined&quot;
+## Field &quot;.cobj&quot;:
+## &lt;pointer: 0x56123af0a2b0&gt;
 </code></pre>
 
-<p>The portable way of finding the column name/number for id, idv and dv columns is to use the provided functions.</p>
-
-<pre><code class="r">libsoc::id_column(pred)
-</code></pre>
-
-<pre><code>## [1] 1
-</code></pre>
-
-<pre><code class="r">libsoc::id_column_name(pred)
-</code></pre>
-
-<pre><code>## [1] &quot;ID&quot;
-</code></pre>
-
-<pre><code class="r">libsoc::idv_column(pred)
-</code></pre>
-
-<pre><code>## [1] 2
-</code></pre>
-
-<pre><code class="r">libsoc::idv_column_name(pred)
-</code></pre>
-
-<pre><code>## [1] &quot;TIME&quot;
-</code></pre>
-
-<h2>Getting the Residuals</h2>
-
-<pre><code class="r">res &lt;- so$SOBlock[[1]]$Estimation$Residuals$ResidualTable
-head(res, 20)
-</code></pre>
-
-<pre><code>##    ID  TIME       RES     IRES      WRES      IWRES     CWRES
-## 1   1   2.0  -0.16929 -0.27518 -0.140800 -0.0156570 -0.142740
-## 2   1 112.5   1.11300  0.65596  0.177620  0.0216180  0.176380
-## 3   2   2.0  -0.78157 -1.43970 -1.175400 -0.1292400 -1.205800
-## 4   2  63.5   4.56020  2.79730  0.973350  0.1283000  0.943370
-## 5   2 135.5   3.94870  0.80411  0.335060  0.0249750  0.303240
-## 6   3   1.5  -3.00270  1.01180  0.271450  0.0595560  0.255090
-## 7   3  83.5  -5.01830  0.45785 -0.058389  0.0196150 -0.105980
-## 8   3 134.3 -11.33000 -4.57310 -1.178000 -0.1583900 -1.230700
-## 9   4   1.8   7.79310  0.24606  0.791600  0.0119710  0.638650
-## 10  4  59.3   7.61640 -0.64012  0.407420 -0.0260850  0.286270
-## 11  4 130.8  10.91000  1.57290  1.325300  0.0522080  1.213500
-## 12  5   2.0  -4.66680  0.38435 -0.063200  0.0278200 -0.093037
-## 13  5  59.5  -5.57280  0.31364 -0.159420  0.0175350 -0.205840
-## 14  5 132.0 -10.09100 -3.11030 -1.059500 -0.1328600 -1.117200
-## 15  6   1.8   2.21680  1.63500  0.742970  0.0941580  0.743250
-## 16  6  59.3  -3.78550 -4.56150 -1.541700 -0.2086500 -1.543600
-## 17  6 142.8   4.66410  3.58240  0.982730  0.1238800  0.979120
-## 18  7   2.0   4.62330 -0.11309  0.447580 -0.0062783  0.344150
-## 19  7  73.8   5.92770  1.17140  0.879840  0.0526960  0.842960
-## 20  7 165.3   3.82140 -0.64356  0.080479 -0.0243370  0.067617
-</code></pre>
-
-<h2>Reading messages</h2>
-
-<p>Messages from a run is stored in the TaskInformation structure. Each message contains a Name a Severity from 1 to 10, the message content and the name of the tool that emitted the message.</p>
-
-<pre><code class="r">messages &lt;- so$SOBlock[[1]]$TaskInformation$Message
-messages[[1]]$Name
-</code></pre>
-
-<pre><code>## [1] &quot;estimation_successful&quot;
-</code></pre>
-
-<pre><code class="r">messages[[1]]$Content
-</code></pre>
-
-<pre><code>## [1] &quot;1&quot;
-</code></pre>
-
-<pre><code class="r">messages[[1]]$Severity
-</code></pre>
-
-<pre><code>## [1] 1
-</code></pre>
-
-<pre><code class="r">messages[[1]]$Toolname
-</code></pre>
-
-<pre><code>## [1] &quot;NONMEM&quot;
-</code></pre>
-
-<pre><code class="r">messages[[13]]$Content
-</code></pre>
-
-<pre><code>## [1] &quot;This SOBlock was created with nmoutput2so version 4.7.14&quot;
-</code></pre>
-
-<h2>iOFV</h2>
-
-<p>OFV values for each individual separately is in the OFMeasures section</p>
-
-<pre><code class="r">iofv &lt;- so$SOBlock[[1]]$Estimation$OFMeasures$IndividualContribToLL
-head(iofv)
-</code></pre>
-
-<pre><code>##   ID    ICtoLL
-## 1  1  7.653419
-## 2  2 11.528829
-## 3  3 12.559465
-## 4  4 11.696525
-## 5  5 11.163075
-## 6  6 13.959221
-</code></pre>
+<p>And written using so$so_write(&ldquo;filename.SO.xml&rdquo;)</p>
 
 </body>
 

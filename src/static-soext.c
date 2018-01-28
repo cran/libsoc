@@ -304,7 +304,7 @@ so_Table *so_SO_all_standard_errors(so_SO *self)
         so_Estimation *est = so_SOBlock_get_Estimation(block);
         double *data = NULL;
         char **names;
-        int numrows;
+        int numrows = 0;
         if (est) {
             so_PrecisionPopulationEstimates *pe = so_Estimation_get_PrecisionPopulationEstimates(est);
             if (pe) {
@@ -648,7 +648,7 @@ int so_SO_is_ruv_parameter(so_SO *self, const char *name)
 
     // Find residualError VariabilityModel matching blkId
     const char *xpath_template_string = "/x:PharmML/mdef:ModelDefinition/mdef:VariabilityModel[@blkId='%s' and @type='residualError']";
-    int xpath_size = snprintf(NULL, 0, xpath_template_string, varref_blk);
+    int xpath_size = snprintf(NULL, 0, xpath_template_string, varref_blk) + 1;
     char *xpath_string = malloc(xpath_size);
     if (!xpath_string) {
         free(varref_blk);
