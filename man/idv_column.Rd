@@ -1,7 +1,10 @@
 \name{idv_column}
 \alias{idv_column}
-\title{Get the index of the idv column}
+\title{Get index of the independent variable column in a data.frame created from an SO object}
 \description{
-	Get the index of the idv column of a data.framed imported from an SO
+	Function to get the index of the independent variable from a data.frame created from an SO object
+}
+\arguments{
+    \item{table}{A data.frame extracted from an SO object}
 }
 \keyword{idv_column}

@@ -1,7 +1,10 @@
 \name{idv_column_name}
 \alias{idv_column_name}
-\title{Get the name of the idv column}
+\title{Get the name of the independent variable column in a data.frame created from an SO object}
 \description{
-	Get the name of the idv column of a data.framed imported from an SO
+	Function to get the name of the independent variable from a data.frame created from an SO object
+}
+\arguments{
+    \item{table}{A data.frame extracted from an SO object}
 }
 \keyword{idv_column_name}

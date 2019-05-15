@@ -1,7 +1,10 @@
 \name{id_column}
 \alias{id_column}
-\title{Get the index of the id column}
+\title{Get index of the ID column in a data.frame created from an SO object}
 \description{
-	Get the index of the id column of a data.framed imported from an SO
+	Function to get the index of the ID column from a data.frame created from an SO object
+}
+\arguments{
+    \item{table}{A data.frame extracted from an SO object}
 }
 \keyword{id_column}

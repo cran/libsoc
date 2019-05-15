@@ -1,7 +1,10 @@
 \name{dv_column_name}
 \alias{dv_column_name}
-\title{Get the name of the dv column}
+\title{Get the name of the DV column in a data.frame created from an SO object}
 \description{
-	Get the name of the dv column of a data.framed imported from an SO
+	Function to get the name of the dependent variable from a data.frame created from an SO object
+}
+\arguments{
+    \item{table}{A data.frame extracted from an SO object}
 }
 \keyword{dv_column_name}
