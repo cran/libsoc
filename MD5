@@ -1,4 +1,4 @@
-af238775f2bc8e483e7cbb1ba20e47f8 *DESCRIPTION
+e9ea2c6c6ace2ba4095ae785ac693a13 *DESCRIPTION
 1ab1a7a1ebb337ebfcd2d9aa2cf0ddcc *NAMESPACE
 61f2a5eeb3858ce45324a46de4dbd0d0 *R/gen-Bayesian.R
 8899f044fd1d04043784c3c4b8762ef8 *R/gen-Bayesian_PPE.R
@@ -35,15 +35,15 @@ dcbbc1bb0bb61fb86922aa701ac481d1 *R/gen-TargetToolMessages.R
 f5f288c408906e4328c13a1d18642fc7 *R/gen-ToolSettings.R
 a7c1f400cd30e87f0319264e021db871 *R/soc.R
 167352d699e0de8aee7c78aa88b7344d *R/x_SOBlock_ext.R
-b123cfbca12c5b4e9350735b2bf1a4b0 *build/vignette.rds
+f3c90770b55b3b2a6949e79b84c1ffcb *build/vignette.rds
 6071edd604dbeb75308cfbedc7790398 *cleanup
-9256569ca6d90bcea1dfa1622b0a884e *configure
-93b2bd799985a111132496f50cfb65b7 *inst/doc/creating_an_so.R
+4447691a67942835791ab11950d0d6df *configure
+62c7d3acf3feef49c944ad4a7739fb86 *inst/doc/creating_an_so.R
 1a102dc4400efff65ab28ddc1abd7b43 *inst/doc/creating_an_so.Rmd
-ab0ea8df8ecf5695e5166b1e6047c8e8 *inst/doc/creating_an_so.html
-6b9a23f03cbd2612e54bb18a5ef9ab46 *inst/doc/so.R
+58b5f8bc7646c163c430ca11e8e165a9 *inst/doc/creating_an_so.html
+8f642da8b4b1acc5da536b58e880319c *inst/doc/so.R
 facdb7de62cb646acff63a56cc0ac919 *inst/doc/so.Rmd
-e202d57b551265f402ff845cf3f405a0 *inst/doc/so.html
+382ac8affb9a9bc8eb90da61cc473a9a *inst/doc/so.html
 4394b362bc6cc83f386ec63370d6d17e *inst/examples/optimaldesign_results.R
 2e76ef25208106dccc3ee31ee555c370 *inst/examples/read_estimates.R
 84f90924f6cb99b8d625b21402cf31eb *inst/extdata/pheno.SO.xml
@@ -92,7 +92,8 @@ d1792e66d76c0fbede43695eeed283b2 *man/idv_column.Rd
 0aceaca27e8222e7eb945698bb52ccf7 *man/libsoc.Rd
 63f7c71bc048122a6344bda04341f40d *man/so_SO_read.Rd
 e909354a6b0394727aebcc6597dfa69e *src/Makevars.in
-579e5e7e5f74ed27301c939c478ed10d *src/Makevars.win
+65a01032581cfb953dd90c1345788fd3 *src/Makevars.ucrt
+dce055610f8ebf668c117f9a3e039a07 *src/Makevars.win
 d664aa38375b4eddecb70aa9f8cc0288 *src/SOBlock_ext.c
 3b471a97377621330c7004c5145f9fee *src/gen-Bayesian.c
 7e557f708695e11250ac711ef468b4e2 *src/gen-Bayesian_PPE.c
@@ -255,6 +256,6 @@ fbf56847c05e2428c53df4adda4ef38c *tests/testthat/test-df2table.R
 85569a4a3b7bf226072a473351565c23 *tests/testthat/test-read.R
 70abaefcb3174b3c6508a4265b687160 *tests/testthat/test-real.R
 2b103bd64403e51b38ab471580f54309 *tests/testthat/test-string.R
-0716ad4afae071a21301e184e79a740c *tools/winlibs.R
+8319b34d0713ffbf2a350ec4a4d51988 *tools/winlibs.R
 1a102dc4400efff65ab28ddc1abd7b43 *vignettes/creating_an_so.Rmd
 facdb7de62cb646acff63a56cc0ac919 *vignettes/so.Rmd

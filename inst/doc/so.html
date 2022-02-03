@@ -1,26 +1,35 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
 
 <title>Working with SO files in R with libsoc</title>
 
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; position: absolute; }
+a.sourceLine:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -33,13 +42,11 @@ code.sourceCode { white-space: pre-wrap; }
 a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
 pre.numberSource a.sourceLine
-  { position: relative; }
-pre.numberSource a.sourceLine:empty
-  { position: absolute; }
+  { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
-    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all;
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -96,7 +103,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -104,6 +111,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -117,9 +125,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -288,8 +293,12 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
+
+
+
 
 </head>
 
@@ -305,59 +314,53 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="reading-an-so-file" class="section level2">
 <h2>Reading an SO file</h2>
 <p>It is easy to read a Standard Output file into R.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">filename &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;pheno.SO.xml&quot;</span>,  <span class="dt">package=</span><span class="st">&quot;libsoc&quot;</span>)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">so &lt;-<span class="st"> </span>libsoc<span class="op">::</span><span class="kw">so_SO_read</span>(filename)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">filename &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;pheno.SO.xml&quot;</span>,  <span class="dt">package=</span><span class="st">&quot;libsoc&quot;</span>)</a>
+<a class="sourceLine" id="cb1-2" title="2">so &lt;-<span class="st"> </span>libsoc<span class="op">::</span><span class="kw">so_SO_read</span>(filename)</a></code></pre></div>
 </div>
 <div id="navigating-the-so-structure" class="section level2">
 <h2>Navigating the SO structure</h2>
 <p>The SO R object closely follows the tree structure of the SO XML. We can extract the population parameter estimates like this:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">param &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>PopulationEstimates<span class="op">$</span>MLE</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">param</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">param &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>PopulationEstimates<span class="op">$</span>MLE</a>
+<a class="sourceLine" id="cb2-2" title="2">param</a></code></pre></div>
 <pre><code>##         TVCL     TVV     IVCL      IVV SIGMA_1_1_
 ## 1 0.00534888 1.42034 0.130798 0.177443  0.0188202</code></pre>
 <p>The result is a data.frame with the population estimates and the names of the parameters as column names. Note the way we go deeper in the SO tree with successive use of the $-opterator. As an SO can contain more than one SOBlock the SOBlock-structure is a list. In the example we simply select the first (and only) SOBlock.</p>
 <p>libsoc also has a special function for extracting the parameter estimates across all SOBlocks</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">so<span class="op">$</span><span class="kw">all_population_estimates</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1">so<span class="op">$</span><span class="kw">all_population_estimates</span>()</a></code></pre></div>
 <pre><code>##         TVCL     TVV     IVCL      IVV SIGMA_1_1_
 ## 1 0.00534888 1.42034 0.130798 0.177443  0.0188202</code></pre>
 </div>
 <div id="getting-information-on-parameters" class="section level2">
 <h2>Getting information on parameters</h2>
 <p>If the SO is linked to a PharmML (for example if it was generated with “nmoutput2so -generate_pharmml”) parameter information can be retrieved from the ParameterModel.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">cols &lt;-<span class="st"> </span><span class="kw">colnames</span>(param)</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">so<span class="op">$</span><span class="kw">variability_type</span>(cols)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">cols &lt;-<span class="st"> </span><span class="kw">colnames</span>(param)</a>
+<a class="sourceLine" id="cb6-2" title="2">so<span class="op">$</span><span class="kw">variability_type</span>(cols)</a></code></pre></div>
 <pre><code>##                   TVCL                    TVV                   IVCL 
 ##      &quot;structParameter&quot;      &quot;structParameter&quot; &quot;parameterVariability&quot; 
 ##                    IVV             SIGMA_1_1_ 
 ## &quot;parameterVariability&quot;        &quot;residualError&quot;</code></pre>
 <p>It is also possible to get information on which parameters represent correlations.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">so<span class="op">$</span><span class="kw">correlation_parameters</span>(cols)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">so<span class="op">$</span><span class="kw">correlation_parameters</span>(cols)</a></code></pre></div>
 <pre><code>##       TVCL        TVV       IVCL        IVV SIGMA_1_1_ 
 ##      FALSE      FALSE      FALSE      FALSE      FALSE</code></pre>
 <p>This example has no correlation parameters.</p>
 <p>The names of the random variables corresponding to the variability parameters can be retrieved:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">so<span class="op">$</span><span class="kw">random_variable_from_variability_parameter</span>(cols)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1">so<span class="op">$</span><span class="kw">random_variable_from_variability_parameter</span>(cols)</a></code></pre></div>
 <pre><code>##       TVCL        TVV       IVCL        IVV SIGMA_1_1_ 
 ##         NA         NA     &quot;ETA1&quot;     &quot;ETA2&quot;     &quot;EPS1&quot;</code></pre>
 </div>
 <div id="obtaining-some-parameter-uncertainty-measures" class="section level2">
 <h2>Obtaining some parameter uncertainty measures</h2>
 <p>The covariance matrix is of standard R matrix type:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>PrecisionPopulationEstimates<span class="op">$</span>MLE<span class="op">$</span>CovarianceMatrix</a></code></pre></div>
-<pre><code>##                    TVCL          TVV         IVCL          IVV
-## TVCL        1.45861e-07  1.14987e-05 -1.95288e-05  7.77462e-07
-## TVV         1.14987e-05  9.64296e-03 -1.98572e-03  3.38779e-03
-## IVCL       -1.95288e-05 -1.98572e-03  7.65663e-03 -4.79990e-04
-## IVV         7.77462e-07  3.38779e-03 -4.79990e-04  2.56664e-03
-## SIGMA_1_1_ -1.29140e-07  1.45110e-04  6.53171e-05  1.06472e-04
-##              SIGMA_1_1_
-## TVCL       -1.29140e-07
-## TVV         1.45110e-04
-## IVCL        6.53171e-05
-## IVV         1.06472e-04
-## SIGMA_1_1_  1.52394e-05</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1">so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>PrecisionPopulationEstimates<span class="op">$</span>MLE<span class="op">$</span>CovarianceMatrix</a></code></pre></div>
+<pre><code>##                    TVCL          TVV         IVCL          IVV   SIGMA_1_1_
+## TVCL        1.45861e-07  1.14987e-05 -1.95288e-05  7.77462e-07 -1.29140e-07
+## TVV         1.14987e-05  9.64296e-03 -1.98572e-03  3.38779e-03  1.45110e-04
+## IVCL       -1.95288e-05 -1.98572e-03  7.65663e-03 -4.79990e-04  6.53171e-05
+## IVV         7.77462e-07  3.38779e-03 -4.79990e-04  2.56664e-03  1.06472e-04
+## SIGMA_1_1_ -1.29140e-07  1.45110e-04  6.53171e-05  1.06472e-04  1.52394e-05</code></pre>
 <p>The standard error for the parameters can be extracted for each SOBlock separately:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>PrecisionPopulationEstimates<span class="op">$</span>MLE<span class="op">$</span>StandardError</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1">so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>PrecisionPopulationEstimates<span class="op">$</span>MLE<span class="op">$</span>StandardError</a></code></pre></div>
 <pre><code>##    Parameter          SE
 ## 1       TVCL 0.000381917
 ## 2        TVV 0.098198600
@@ -365,11 +368,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## 4        IVV 0.050662000
 ## 5 SIGMA_1_1_ 0.003903770</code></pre>
 <p>Or more conveniently for all SOBlocks together:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">so<span class="op">$</span><span class="kw">all_standard_errors</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1">so<span class="op">$</span><span class="kw">all_standard_errors</span>()</a></code></pre></div>
 <pre><code>##          TVCL       TVV      IVCL      IVV SIGMA_1_1_
 ## 1 0.000381917 0.0981986 0.0875022 0.050662 0.00390377</code></pre>
 <p>Relative standard errors can currently only be retrieved for each SOBlock separately:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>PrecisionPopulationEstimates<span class="op">$</span>MLE<span class="op">$</span>RelativeStandardError</a></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" title="1">so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>PrecisionPopulationEstimates<span class="op">$</span>MLE<span class="op">$</span>RelativeStandardError</a></code></pre></div>
 <pre><code>##    Parameter       RSE
 ## 1       TVCL  7.140130
 ## 2        TVV  6.913739
@@ -379,13 +382,13 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 <div id="getting-the-ofv" class="section level2">
 <h2>Getting the OFV</h2>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>OFMeasures<span class="op">$</span>Deviance</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" title="1">so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>OFMeasures<span class="op">$</span>Deviance</a></code></pre></div>
 <pre><code>## [1] 740.278</code></pre>
 </div>
 <div id="getting-the-predictions" class="section level2">
 <h2>Getting the Predictions</h2>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1">pred &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>Predictions</a>
-<a class="sourceLine" id="cb22-2" data-line-number="2"><span class="kw">head</span>(pred, <span class="dv">20</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" title="1">pred &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>Predictions</a>
+<a class="sourceLine" id="cb22-2" title="2"><span class="kw">head</span>(pred, <span class="dv">20</span>)</a></code></pre></div>
 <pre><code>##    ID  TIME   PRED  IPRED
 ## 1   1   0.0 17.601 17.704
 ## 2   1   2.0 17.469 17.575
@@ -411,7 +414,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="getting-information-on-table-columns" class="section level2">
 <h2>Getting information on table columns</h2>
 <p>Each table in the SO structure has a columnType attribute that gives an array of columnTypes taken directly from the xml.</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="kw">attributes</span>(pred)<span class="op">$</span>columnType</a></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" title="1"><span class="kw">attributes</span>(pred)<span class="op">$</span>columnType</a></code></pre></div>
 <pre><code>## [[1]]
 ## [1] &quot;id&quot;
 ## 
@@ -424,19 +427,19 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## [[4]]
 ## [1] &quot;undefined&quot;</code></pre>
 <p>The portable way of finding the column name/number for id, idv and dv columns is to use the provided functions.</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1">libsoc<span class="op">::</span><span class="kw">id_column</span>(pred)</a></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" title="1">libsoc<span class="op">::</span><span class="kw">id_column</span>(pred)</a></code></pre></div>
 <pre><code>## [1] 1</code></pre>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1">libsoc<span class="op">::</span><span class="kw">id_column_name</span>(pred)</a></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" title="1">libsoc<span class="op">::</span><span class="kw">id_column_name</span>(pred)</a></code></pre></div>
 <pre><code>## [1] &quot;ID&quot;</code></pre>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1">libsoc<span class="op">::</span><span class="kw">idv_column</span>(pred)</a></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" title="1">libsoc<span class="op">::</span><span class="kw">idv_column</span>(pred)</a></code></pre></div>
 <pre><code>## [1] 2</code></pre>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1">libsoc<span class="op">::</span><span class="kw">idv_column_name</span>(pred)</a></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" title="1">libsoc<span class="op">::</span><span class="kw">idv_column_name</span>(pred)</a></code></pre></div>
 <pre><code>## [1] &quot;TIME&quot;</code></pre>
 </div>
 <div id="getting-the-residuals" class="section level2">
 <h2>Getting the Residuals</h2>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1">res &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>Residuals<span class="op">$</span>ResidualTable</a>
-<a class="sourceLine" id="cb34-2" data-line-number="2"><span class="kw">head</span>(res, <span class="dv">20</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" title="1">res &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>Residuals<span class="op">$</span>ResidualTable</a>
+<a class="sourceLine" id="cb34-2" title="2"><span class="kw">head</span>(res, <span class="dv">20</span>)</a></code></pre></div>
 <pre><code>##    ID  TIME       RES     IRES      WRES      IWRES     CWRES
 ## 1   1   2.0  -0.16929 -0.27518 -0.140800 -0.0156570 -0.142740
 ## 2   1 112.5   1.11300  0.65596  0.177620  0.0216180  0.176380
@@ -462,23 +465,23 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="reading-messages" class="section level2">
 <h2>Reading messages</h2>
 <p>Messages from a run is stored in the TaskInformation structure. Each message contains a Name a Severity from 1 to 10, the message content and the name of the tool that emitted the message.</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" data-line-number="1">messages &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>TaskInformation<span class="op">$</span>Message</a>
-<a class="sourceLine" id="cb36-2" data-line-number="2">messages[[<span class="dv">1</span>]]<span class="op">$</span>Name</a></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" title="1">messages &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>TaskInformation<span class="op">$</span>Message</a>
+<a class="sourceLine" id="cb36-2" title="2">messages[[<span class="dv">1</span>]]<span class="op">$</span>Name</a></code></pre></div>
 <pre><code>## [1] &quot;estimation_successful&quot;</code></pre>
-<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" data-line-number="1">messages[[<span class="dv">1</span>]]<span class="op">$</span>Content</a></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" title="1">messages[[<span class="dv">1</span>]]<span class="op">$</span>Content</a></code></pre></div>
 <pre><code>## [1] &quot;1&quot;</code></pre>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" data-line-number="1">messages[[<span class="dv">1</span>]]<span class="op">$</span>Severity</a></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" title="1">messages[[<span class="dv">1</span>]]<span class="op">$</span>Severity</a></code></pre></div>
 <pre><code>## [1] 1</code></pre>
-<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1">messages[[<span class="dv">1</span>]]<span class="op">$</span>Toolname</a></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" title="1">messages[[<span class="dv">1</span>]]<span class="op">$</span>Toolname</a></code></pre></div>
 <pre><code>## [1] &quot;NONMEM&quot;</code></pre>
-<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" data-line-number="1">messages[[<span class="dv">13</span>]]<span class="op">$</span>Content</a></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" title="1">messages[[<span class="dv">13</span>]]<span class="op">$</span>Content</a></code></pre></div>
 <pre><code>## [1] &quot;This SOBlock was created with nmoutput2so version 4.7.14&quot;</code></pre>
 </div>
 <div id="iofv" class="section level2">
 <h2>iOFV</h2>
 <p>OFV values for each individual separately is in the OFMeasures section</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" data-line-number="1">iofv &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>OFMeasures<span class="op">$</span>IndividualContribToLL</a>
-<a class="sourceLine" id="cb46-2" data-line-number="2"><span class="kw">head</span>(iofv)</a></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" title="1">iofv &lt;-<span class="st"> </span>so<span class="op">$</span>SOBlock[[<span class="dv">1</span>]]<span class="op">$</span>Estimation<span class="op">$</span>OFMeasures<span class="op">$</span>IndividualContribToLL</a>
+<a class="sourceLine" id="cb46-2" title="2"><span class="kw">head</span>(iofv)</a></code></pre></div>
 <pre><code>##   ID    ICtoLL
 ## 1  1  7.653419
 ## 2  2 11.528829
@@ -488,6 +491,9 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## 6  6 13.959221</code></pre>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

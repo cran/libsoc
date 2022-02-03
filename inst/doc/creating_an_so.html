@@ -1,26 +1,35 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
 
 <title>Creating a new Standard Output file from scratch</title>
 
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; position: absolute; }
+a.sourceLine:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -33,13 +42,11 @@ code.sourceCode { white-space: pre-wrap; }
 a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
 pre.numberSource a.sourceLine
-  { position: relative; }
-pre.numberSource a.sourceLine:empty
-  { position: absolute; }
+  { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
-    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all;
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -96,7 +103,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -104,6 +111,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -117,9 +125,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -288,8 +293,12 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
+
+
+
 
 </head>
 
@@ -306,29 +315,29 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <h2>Creating a simple SO with PopulationEstimate</h2>
 <p>This section will walk you through the creation of a simple SO file.</p>
 <p>First we create the data structure with the maximum likelihood parameter estimates.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">MLE &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">POP_CL=</span><span class="fl">2.23</span>, <span class="dt">POP_V=</span><span class="dv">40</span>, <span class="dt">IVCL=</span><span class="fl">0.4</span>, <span class="dt">IVV=</span><span class="fl">0.3</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">MLE &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">POP_CL=</span><span class="fl">2.23</span>, <span class="dt">POP_V=</span><span class="dv">40</span>, <span class="dt">IVCL=</span><span class="fl">0.4</span>, <span class="dt">IVV=</span><span class="fl">0.3</span>)</a></code></pre></div>
 <p>Next we add the additional columnType attribute.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">attributes</span>(MLE)<span class="op">$</span>columnType &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="kw">c</span>(<span class="st">&quot;structuralParameter&quot;</span>), <span class="kw">c</span>(<span class="st">&quot;structuralParameter&quot;</span>), <span class="kw">c</span>(<span class="st">&quot;varParameter&quot;</span>, <span class="st">&quot;variance&quot;</span>), <span class="kw">c</span>(<span class="st">&quot;varParameter&quot;</span>, <span class="st">&quot;variance&quot;</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">attributes</span>(MLE)<span class="op">$</span>columnType &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="kw">c</span>(<span class="st">&quot;structuralParameter&quot;</span>), <span class="kw">c</span>(<span class="st">&quot;structuralParameter&quot;</span>), <span class="kw">c</span>(<span class="st">&quot;varParameter&quot;</span>, <span class="st">&quot;variance&quot;</span>), <span class="kw">c</span>(<span class="st">&quot;varParameter&quot;</span>, <span class="st">&quot;variance&quot;</span>))</a></code></pre></div>
 <p>This sets POP_CL and POP_V to be structural parameters and IVCL and IVV to be variability parameters on the variance scale.</p>
 <p>The next step is to create the PopulationEstimates object.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">library</span>(libsoc)</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2">popest &lt;-<span class="st"> </span>so_PopulationEstimates<span class="op">$</span><span class="kw">new</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">library</span>(libsoc)</a>
+<a class="sourceLine" id="cb3-2" title="2">popest &lt;-<span class="st"> </span>so_PopulationEstimates<span class="op">$</span><span class="kw">new</span>()</a></code></pre></div>
 <p>The MLE data.frame can now be attached.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">popest<span class="op">$</span>MLE &lt;-<span class="st"> </span>MLE</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1">popest<span class="op">$</span>MLE &lt;-<span class="st"> </span>MLE</a></code></pre></div>
 <p>Now we create the parent objects of the PopulationEstimates.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">est &lt;-<span class="st"> </span>so_Estimation<span class="op">$</span><span class="kw">new</span>()</a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">est<span class="op">$</span>PopulationEstimates &lt;-<span class="st"> </span>popest</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3">block &lt;-<span class="st"> </span>so_SOBlock<span class="op">$</span><span class="kw">new</span>()</a>
-<a class="sourceLine" id="cb5-4" data-line-number="4">block<span class="op">$</span>blkId &lt;-<span class="st"> &quot;myEstimationRun&quot;</span></a>
-<a class="sourceLine" id="cb5-5" data-line-number="5">block<span class="op">$</span>Estimation &lt;-<span class="st"> </span>est</a>
-<a class="sourceLine" id="cb5-6" data-line-number="6">so &lt;-<span class="st"> </span>so_SO<span class="op">$</span><span class="kw">new</span>()</a>
-<a class="sourceLine" id="cb5-7" data-line-number="7">so<span class="op">$</span><span class="kw">add_SOBlock</span>(block)</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">est &lt;-<span class="st"> </span>so_Estimation<span class="op">$</span><span class="kw">new</span>()</a>
+<a class="sourceLine" id="cb5-2" title="2">est<span class="op">$</span>PopulationEstimates &lt;-<span class="st"> </span>popest</a>
+<a class="sourceLine" id="cb5-3" title="3">block &lt;-<span class="st"> </span>so_SOBlock<span class="op">$</span><span class="kw">new</span>()</a>
+<a class="sourceLine" id="cb5-4" title="4">block<span class="op">$</span>blkId &lt;-<span class="st"> &quot;myEstimationRun&quot;</span></a>
+<a class="sourceLine" id="cb5-5" title="5">block<span class="op">$</span>Estimation &lt;-<span class="st"> </span>est</a>
+<a class="sourceLine" id="cb5-6" title="6">so &lt;-<span class="st"> </span>so_SO<span class="op">$</span><span class="kw">new</span>()</a>
+<a class="sourceLine" id="cb5-7" title="7">so<span class="op">$</span><span class="kw">add_SOBlock</span>(block)</a></code></pre></div>
 <p>It is possible to add messages using a convenient method</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">block<span class="op">$</span><span class="kw">add_message</span>(<span class="st">&quot;WARNING&quot;</span>, <span class="st">&quot;myTool&quot;</span>, <span class="st">&quot;name_of_warning&quot;</span>, <span class="st">&quot;This is the description&quot;</span>, <span class="dv">2</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">block<span class="op">$</span><span class="kw">add_message</span>(<span class="st">&quot;WARNING&quot;</span>, <span class="st">&quot;myTool&quot;</span>, <span class="st">&quot;name_of_warning&quot;</span>, <span class="st">&quot;This is the description&quot;</span>, <span class="dv">2</span>)</a></code></pre></div>
 <p>Another method adds a rawresults datafile from the tool.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">block<span class="op">$</span><span class="kw">add_rawresults_datafile</span>(<span class="st">&quot;Description&quot;</span>, <span class="st">&quot;file&quot;</span>, <span class="st">&quot;id1&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">block<span class="op">$</span><span class="kw">add_rawresults_datafile</span>(<span class="st">&quot;Description&quot;</span>, <span class="st">&quot;file&quot;</span>, <span class="st">&quot;id1&quot;</span>)</a></code></pre></div>
 <p>The resulting structure can be inspected</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">so</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">so</a></code></pre></div>
 <pre><code>## Reference class object of class &quot;so_SO&quot;
 ## Field &quot;id&quot;:
 ## NULL
@@ -354,7 +363,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## Field &quot;GraphicsFile&quot;:
 ## NULL
 ## Field &quot;.cobj&quot;:
-## &lt;pointer: 0x56533efd2970&gt;
+## &lt;pointer: 0x557d3be2cc30&gt;
 ## Field &quot;TaskInformation&quot;:
 ## Reference class object of class &quot;so_TaskInformation&quot;
 ## Field &quot;Message&quot;:
@@ -371,7 +380,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## Field &quot;Severity&quot;:
 ## [1] 2
 ## Field &quot;.cobj&quot;:
-## &lt;pointer: 0x56533e4af210&gt;
+## &lt;pointer: 0x557d3cd77b60&gt;
 ## 
 ## Field &quot;OutputFilePath&quot;:
 ## NULL
@@ -382,7 +391,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## Field &quot;NumberIterations&quot;:
 ## NULL
 ## Field &quot;.cobj&quot;:
-## &lt;pointer: 0x56533e219ec0&gt;
+## &lt;pointer: 0x557d3bf964e0&gt;
 ## Field &quot;Estimation&quot;:
 ## Reference class object of class &quot;so_Estimation&quot;
 ## Field &quot;PopulationEstimates&quot;:
@@ -395,7 +404,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## Field &quot;OtherMethod&quot;:
 ## NULL
 ## Field &quot;.cobj&quot;:
-## &lt;pointer: 0x56533ce69cd0&gt;
+## &lt;pointer: 0x557d3c874d40&gt;
 ## Field &quot;PrecisionPopulationEstimates&quot;:
 ## NULL
 ## Field &quot;IndividualEstimates&quot;:
@@ -411,7 +420,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## Field &quot;TargetToolMessages&quot;:
 ## NULL
 ## Field &quot;.cobj&quot;:
-## &lt;pointer: 0x56533c8da3b0&gt;
+## &lt;pointer: 0x557d3b6e5080&gt;
 ## Field &quot;Simulation&quot;:
 ## NULL
 ## Field &quot;ModelDiagnostic&quot;:
@@ -419,13 +428,16 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ## Field &quot;OptimalDesign&quot;:
 ## NULL
 ## Field &quot;.cobj&quot;:
-## &lt;pointer: 0x56533cee4f90&gt;
+## &lt;pointer: 0x557d3b517fa0&gt;
 ## 
 ## Field &quot;.cobj&quot;:
-## &lt;pointer: 0x56533e68ee20&gt;</code></pre>
+## &lt;pointer: 0x557d3d6dd040&gt;</code></pre>
 <p>And written using so$so_write(“filename.SO.xml”)</p>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
